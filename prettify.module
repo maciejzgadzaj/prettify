@@ -417,8 +417,11 @@ function prettify_activation_page_match() {
       // those pages listed in $pages.
       $page_match = !($activation xor $page_match);
     }
+    elseif (module_exists('php')) {
+      $page_match = php_eval($pages);
+    }
     else {
-      $page_match = drupal_eval($pages);
+      $page_match = FALSE;
     }
   }
   else {
