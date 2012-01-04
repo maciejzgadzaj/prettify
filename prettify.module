@@ -58,6 +58,9 @@ function prettify_help($path, $arg) {
       $output .= '<dd>' . t('<a href="@url">Sergio Martín Morillas</a>', array('@url' => 'http://drupal.org/user/191570')) . '</dd>';
       $output .= '</dl>';
       return $output;
+    case 'admin/config/user-interface/prettify':
+      $output = '<p>' . t("<em>Code Prettify</em> is very easy to use, only configure markup of blocks of code for you Drupal site and Prettify detects automatically the language and highlights it. If don't want use automatic syntax highlighting of source code, you can configure Prettify filter on you <a href=\"@input-format\">text formatst</a>.", array('@input-format' => url('admin/config/content/formats'))) . '</p>';
+      return $output;
   }
 }
 
