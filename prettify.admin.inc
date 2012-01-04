@@ -20,7 +20,7 @@ function prettify_admin_settings() {
 
   $form['auto'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Automactic syntax highlighting settings'),
+    '#title' => t('Automatic syntax highlighting settings'),
   );
 
   /*
