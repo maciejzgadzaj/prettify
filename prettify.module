@@ -391,13 +391,16 @@ function prettify_add_library() {
       $css_path = "$module_path/styles/$css.css";
   }
 
+  // The CSS file is added after the theme's style
+  $group = CSS_THEME + 1;
+
   if (file_exists($css_path)) {
     // Local CSS file
-    drupal_add_css($css_path, array('type' => 'file', 'media' => $css_media, 'preprocess' => $css_preprocess));
+    drupal_add_css($css_path, array('type' => 'file', 'group' => $group, 'media' => $css_media, 'preprocess' => $css_preprocess));
   }
   elseif (valid_url($css_path, TRUE)) {
     // External CSS url
-    drupal_add_css($css_path, array('type' => 'external', 'media' => $css_media));
+    drupal_add_css($css_path, array('type' => 'external', 'group' => $group, 'media' => $css_media));
   }
 }
 
