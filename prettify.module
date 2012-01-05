@@ -125,6 +125,25 @@ function prettify_theme() {
 }
 
 /**
+ * Implements hook_form_alter().
+ */
+function prettify_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form['#format']) && $form_id == 'filter_admin_format_form' && empty($form_state['input'])) {
+    $format = $form['#format'];
+    $filters = filter_list_format($format->format);
+
+    if (!empty($filters['prettify']->status) &&  !empty($filters['filter_html']->status)) {
+      $prettify_filter = $filters['prettify'];
+      $html_filter = $filters['filter_html'];
+      if ($prettify_filter->weight < $html_filter->weight) {
+        drupal_set_message(t('To make sure the %prettify-filter filter is after either the %html-filter filter.', array('%prettify-filter' => $prettify_filter->title, '%html-filter' => $html_filter->title)), 'warning');
+      }
+    }
+  }
+}
+
+
+/**
  * Implements hook_filter_info().
  */
 function prettify_filter_info() {
