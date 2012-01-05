@@ -265,10 +265,10 @@ function prettify_process_code($text, $options) {
   $text = nl2br($text);
 
   // Prettifier code
-  //$text = theme('prettify', array('text' => _prettify_fix_spaces(str_replace(' ', '&nbsp;', $text)), 'multiline' => $multiline, 'classes' => $options));
   $text = theme('prettify', array(
     'text' => _prettify_fix_spaces(str_replace(' ', '&nbsp;', $text)),
     'markup' => $multiline ? PRETTIFY_MARKUP_PRECODE : PRETTIFY_MARKUP_CODE,
+    'linenums' => (bool) variable_get('prettify_behaviour_linenums', 0),
   ));
 
   // Remove newlines to avoid clashing with the linebreak filter

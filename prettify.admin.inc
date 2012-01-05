@@ -202,6 +202,7 @@ function prettify_admin_settings() {
     '#description' => t('If is checked, Prettify CSS file be aggregated and compressed if this feature has been turned on under the performance section (default: checked).'),
   );
 
+  $form['#submit'][] = 'prettify_admin_settings_submit';
   return system_settings_form($form);
 }
 
@@ -209,10 +210,24 @@ function prettify_admin_settings() {
  *
  */
 function prettify_admin_settings_validate($form, &$form_state) {
-
   // Force to check <pre><code> tag if <pre> tag is checked.
   if (!empty($form_values['prettify_auto_tags'][PRETTIFY_MARKUP_PRE])) {
     $form_state['values']['prettify_auto_tags'][PRETTIFY_MARKUP_PRECODE] = PRETTIFY_MARKUP_PRECODE;
+  }
+}
+
+/**
+ *
+ */
+function prettify_admin_settings_submit($form, &$form_state) {
+  // Only clear cache if code prettify filter is enabled.
+  if (module_exists('filter')) {
+    if (db_query("SELECT COUNT(*) FROM {filter} WHERE module = 'prettify' AND name = 'prettify' AND status = 1")) {
+      if (module_exists('field')) {
+        field_cache_clear();
+      }
+      cache_clear_all('*', 'cache_filter', TRUE);
+    }
   }
 }
 
