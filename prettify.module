@@ -59,7 +59,7 @@ function prettify_help($path, $arg) {
       $output .= '</dl>';
       return $output;
     case 'admin/config/user-interface/prettify':
-      $output = '<p>' . t("<em>Code Prettify</em> is very easy to use, only configure markup of blocks of code for you Drupal site and Prettify detects automatically the language and highlights it. If don't want use automatic syntax highlighting of source code, you can configure Prettify filter on you <a href=\"@input-format\">text formatst</a>.", array('@input-format' => url('admin/config/content/formats'))) . '</p>';
+      $output = '<p>' . t("<em>Code Prettify</em> is very easy to use. Simply select the markup you're using for code blocks and Prettify will automatically detect the language of the code and highlight it. If you don't want to use automatic code syntax highlighting, Code Prettify also creates a text filter which can be added to any <a href=\"@input-format\">text format</a>.", array('@input-format' => url('admin/config/content/formats'))) . '</p>';
       return $output;
   }
 }
@@ -148,8 +148,8 @@ function prettify_form_alter(&$form, &$form_state, $form_id) {
  */
 function prettify_filter_info() {
   $filters['prettify'] = array(
-    'title' => t('Source code snippet prettifier'),
-    'description' => t('Syntax highlighting of source code snippets using <a href="@url">Google Code Prettify</a> library.', array('@url' => 'http://code.google.com/p/google-code-prettify')),
+    'title' => t('Source code prettifier'),
+    'description' => t('Highlights code snippets using the <em>Google Code Prettify</em> library. <strong>Note</strong>: This filter escape all HTML entities inside code blocks so that users can post code without having to worry about manually escaping <code>&lt;</code> and <code>&gt;</code> characters with &amp;lt; and &amp;gt;. You can configure module global settings in <a href="@url">Code prettify configuration page</a>.', array('@url' => url('admin/config/user-interface/prettify'))),
     'prepare callback' => 'prettify_filter_prepare',
     'process callback' => 'prettify_filter_process',
     'settings callback' => 'prettify_filter_settings',
