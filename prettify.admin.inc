@@ -211,7 +211,7 @@ function prettify_admin_settings() {
  */
 function prettify_admin_settings_validate($form, &$form_state) {
   // Force to check <pre><code> tag if <pre> tag is checked.
-  if (!empty($form_values['prettify_auto_tags'][PRETTIFY_MARKUP_PRE])) {
+  if (!empty($form_state['values']['prettify_auto_tags'][PRETTIFY_MARKUP_PRE])) {
     $form_state['values']['prettify_auto_tags'][PRETTIFY_MARKUP_PRECODE] = PRETTIFY_MARKUP_PRECODE;
   }
 }
