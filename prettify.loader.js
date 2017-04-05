@@ -1,38 +1,42 @@
-(function ($) {
+(function ($, Drupal, drupalSettings) {
 
 Drupal.prettify = Drupal.prettify || {};
-  
+
 /**
  * Attach prettify loader behavior.
  */
 Drupal.behaviors.prettify = {
-  attach: function (context) {  
-    if (Drupal.settings.prettify.match) {
-      context = Drupal.settings.prettify.match;
+  attach: function (context, settings) {
+
+    console.log(drupalSettings);
+    if (drupalSettings.prettify.match) {
+      context = drupalSettings.prettify.match;
     }
-  
-    if (Drupal.settings.prettify.markup['code']) {
+
+    if (drupalSettings.prettify.markup['code']) {
+      console.log(context);
       // Selector for <code>...</code>
       $("code:not(.prettyprint)", context).not($("pre > code", context)).each(function () {
         Drupal.prettify.prettifyBlock($(this));
       });
     }
-    if (Drupal.settings.prettify.markup['pre']) {
+
+    if (drupalSettings.prettify.markup.pre) {
       // Selector for <pre>...</pre>
       $("pre:not(.prettyprint)", context).each(function () {
         Drupal.prettify.prettifyBlock($(this));
       });
     }
-    else if (Drupal.settings.prettify.markup['precode']) {
+    else if (drupalSettings.prettify.markup.precode) {
       // Selector for <pre><code>...</code></pre>
       $("pre:not(.prettyprint) > code", context).parent().each(function () {
         Drupal.prettify.prettifyBlock($(this));
       });
     }
-    
+
     // Process custom markup selectors
-    for (var i = 0; i < Drupal.settings.prettify.custom.length; i++) {
-      var selector = Drupal.settings.prettify.custom[i];
+    for (var i = 0; i < drupalSettings.prettify.custom.length; i++) {
+      var selector = drupalSettings.prettify.custom[i];
       if (selector) {
         $(selector, context).each(function () {
           if (!$(this).hasClass('prettyprint')) {
@@ -40,9 +44,9 @@ Drupal.behaviors.prettify = {
             Drupal.prettify.prettifyBlock(codeBlock);
           }
         });
-      }      
+      }
     }
-  
+
     if ($(".prettyprint").length > 0) {
       prettyPrint();
     }
@@ -50,12 +54,12 @@ Drupal.behaviors.prettify = {
 };
 
 Drupal.prettify.prettifyBlock = function(codeBlock) {
-  if (!codeBlock.hasClass(Drupal.settings.prettify.nocode)) {
+  if (!codeBlock.hasClass(drupalSettings.prettify.nocode)) {
     codeBlock.addClass("prettyprint");
-    if (Drupal.settings.prettify.linenums && codeBlock.is('pre')) {
+    if (drupalSettings.prettify.linenums && codeBlock.is('pre')) {
       codeBlock.addClass("linenums");
     }
   }
 }
 
-})(jQuery);
+})(jQuery, Drupal, drupalSettings);

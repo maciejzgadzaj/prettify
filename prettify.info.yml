@@ -1,0 +1,6 @@
+name: 'Code Prettify'
+type: module
+description: 'Syntax highlighting of source code snippets using <a href=\"http://code.google.com/p/google-code-prettify\">Google Code Prettify</a>.'
+package: 'User interface'
+core: 8.x
+configure: admin/config/user-interface/prettify

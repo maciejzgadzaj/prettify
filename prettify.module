@@ -9,6 +9,8 @@
  * http://code.google.com/p/google-code-prettify/
  */
 
+use Drupal\Component\Utility\UrlHelper;
+
 /**
  * Google Code Prettify library name.
  */
@@ -65,13 +67,34 @@ function prettify_help($path, $arg) {
 }
 
 /**
- * Implements hook_init().
+ * Implements hook_page_build().
  */
-function prettify_init() {
+function prettify_page_build(&$page) {
   // Only load library on match page specific activation
   if (prettify_activation_page_match()) {
-    prettify_add_library();
+    prettify_add_library($page);
+    $page['#attached']['library'][] = 'prettify/prettify';
   }
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function prettify_libraries_info() {
+  $libraries['prettify'] = array(
+    'name' => 'Prettify',
+    'vendor url' => 'http://code.google.com/p/google-code-prettify/',
+    'download url' => 'https://google-code-prettify.googlecode.com/files/prettify-small-4-Mar-2013.tar.bz2',
+    'version' => \Drupal::VERSION,
+    'files' => array(
+      //'js' =>
+    ),
+    'dependencies' => array(
+      array('system', 'jquery'),
+    ),
+  );
+
+  return $libraries;
 }
 
 /**
@@ -80,34 +103,23 @@ function prettify_init() {
 function prettify_menu() {
   $items = array();
 
-  // -- Settings
   $items['admin/config/user-interface/prettify'] = array(
     'title' => 'Code prettify',
     'description' => 'Configure Code prettify settings.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('prettify_admin_settings'),
-    'access arguments' => array('administer site configuration'),
-    'file' => 'prettify.admin.inc',
+    'route_name' => 'prettify.admin',
   );
 
   // -- Theme gallery
   $items['prettify/gallery'] = array(
     'title' => 'Gallery of themes for Code Prettify',
     'description' => 'Gallery of themes for Code Prettify.',
-    'page callback' => 'prettify_admin_gallery_overview_page',
-    'access arguments' => array('administer site configuration'),
-    'file' => 'prettify.admin.inc',
-    'type' => MENU_CALLBACK,
+    'route_name' => 'prettify.gallery',
   );
 
-  $items['prettify/gallery/%'] = array(
-    'title' => 'Code prettify themes gallery',
+  $items['prettify/gallery/%css'] = array(
+    'title' => 'Gallery of themes for Code Prettify',
     'description' => 'Gallery of themes for Code Prettify.',
-    'page callback' => 'prettify_admin_gallery_demo_page',
-    'page arguments' => array(2),
-    'access arguments' => array('administer site configuration'),
-    'file' => 'prettify.admin.inc',
-    'type' => MENU_CALLBACK,
+    'route_name' => 'prettify.demo',
   );
 
   return $items;
@@ -128,106 +140,18 @@ function prettify_theme() {
  * Implements hook_form_alter().
  */
 function prettify_form_alter(&$form, &$form_state, $form_id) {
-  if (isset($form['#format']) && $form_id == 'filter_admin_format_form' && empty($form_state['input'])) {
-    $format = $form['#format'];
-    $filters = filter_list_format($format->format);
-
+  if (isset($form['format']) && $form_id == 'filter_format_edit_form' && empty($form_state['input'])) {
+    $format = $form['format']['#default_value'];
+    $format = entity_load('filter_format', $format);
+    $filters = $format->filters()->sort()->getConfiguration();
     if (!empty($filters['prettify']->status) &&  !empty($filters['filter_html']->status)) {
       $prettify_filter = $filters['prettify'];
       $html_filter = $filters['filter_html'];
       if ($prettify_filter->weight < $html_filter->weight) {
-        drupal_set_message(t('To make sure the %prettify-filter filter is after either the %html-filter filter.', array('%prettify-filter' => $prettify_filter->title, '%html-filter' => $html_filter->title)), 'warning');
+        drupal_set_message(t('To make sure the %prettify-filter filter is after either the %html-filter filter.', array('%prettify-filter' => $prettify_filter->id, '%html-filter' => $html_filter->id)), 'warning');
       }
     }
   }
-}
-
-
-/**
- * Implements hook_filter_info().
- */
-function prettify_filter_info() {
-  $filters['prettify'] = array(
-    'title' => t('Source code prettifier'),
-    'description' => t('Highlights code snippets using the <em>Google Code Prettify</em> library. <strong>Note</strong>: This filter escape all HTML entities inside code blocks so that users can post code without having to worry about manually escaping <code>&lt;</code> and <code>&gt;</code> characters with &amp;lt; and &amp;gt;. You can configure module global settings in <a href="@url">Code prettify configuration page</a>.', array('@url' => url('admin/config/user-interface/prettify'))),
-    'prepare callback' => 'prettify_filter_prepare',
-    'process callback' => 'prettify_filter_process',
-    'settings callback' => 'prettify_filter_settings',
-    'default settings' => array(
-      'prettify_filter_tag' => '<code> <source>',
-    ),
-    'tips callback' => 'prettify_filter_tips',
-    'weight' => 0,
-  );
-  return $filters;
-}
-
-/**
- * Tips callback for prettify filter.
- */
-function prettify_filter_tips($filter, $format, $long = FALSE) {
-  $code_tags = preg_split('/\s+|<|>/', $filter->settings['prettify_filter_tag'], -1, PREG_SPLIT_NO_EMPTY);
-  if ($long) {
-    return t('To post highlighted source code snippets, surround them with &lt;pre&gt;...&lt;/pre&gt;, &lt;pre&gt;&lt;code&gt;...&lt;/pre&gt;&lt;/code&gt; or &lt;code&gt;...&lt;/code&gt; tags.');
-  }
-  else {
-    $help = '';
-    for ($i = 0; $i < count($code_tags); $i++) {
-      $tag = $code_tags[$i];
-      $help .= "&lt;$tag&gt;...&lt;/$tag&gt;";
-      if ($i < count($code_tags) - 2) {
-        $help .= ', ';
-      }
-      elseif ($i < count($code_tags) - 1) {
-        $help .= ' or ';
-      }
-    }
-    return t('Code snippets in !tags automatically will be pretty printed.', array('!tags' => $help));
-    //return t("You may post code snippets using &lt;pre&gt;...&lt;/pre&gt;, &lt;pre&gt;&lt;code&gt;...&lt;/pre&gt;&lt;/code&gt; or &lt;code&gt;...&lt;/code&gt; tags.");
-  }
-}
-
-/**
- * Settings callback for the prettify filter.
- */
-function prettify_filter_settings($form, &$form_state, $filter, $format, $defaults, $filters) {
-  $filter->settings += $defaults;
-
-  $settings['prettify_filter_tag'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Code snippets tags'),
-    '#default_value' => $filter->settings['prettify_filter_tag'],
-    '#maxlength' => 1024,
-    //'#description' => t('A list of HTML tags that can be used. JavaScript event attributes, JavaScript URLs, and CSS are always stripped.'),
-    '#description' => t('Code snippets in this tags will automatically be pretty printed.'),
-  );
-
-  return $settings;
-}
-
-/**
- * Prepare callback for the prettify filter.
- *
- * Replace prettify tags to prevent other filters from acting on them.
- *
- * @see _codefilter_prepare()
- * @see _prettify_escape_callback()
- */
-function prettify_filter_prepare($text, $filter, $format, $langcode, $cache, $cache_id) {
-  $prettify_tags = preg_split('/\s+|<|>/', $filter->settings['prettify_filter_tag'], -1, PREG_SPLIT_NO_EMPTY);
-  foreach ($prettify_tags as $tag) {
-    $tag = preg_quote($tag, '@');
-    $text = preg_replace_callback("@\<$tag(?:\s+(.+?))?\>(.+?)\</$tag\>@s", '_prettify_escape_callback', $text);
-  }
-  return $text;
-}
-
-/**
- * Process callback for the prettify filter.
- */
-function prettify_filter_process($text, $filter, $format, $langcode, $cache, $cache_id) {
-  $text = preg_replace_callback('@(?:<p>\s*)?\[prettify(.*?)\](.+?)\[/prettify\](?:\s*</p>)?@s', '_prettify_process_callback', $text);
-  return $text;
 }
 
 /**
@@ -268,6 +192,8 @@ function prettify_escape_code($text, $options) {
  * This code is based in codefilter_process_code() function.
  */
 function prettify_process_code($text, $options) {
+  $config = \Drupal::config('prettify.settings');
+
   // Undo linebreak escaping
   $text = str_replace('&#10;', "\n", $text);
 
@@ -284,11 +210,13 @@ function prettify_process_code($text, $options) {
   $text = nl2br($text);
 
   // Prettifier code
-  $text = theme('prettify', array(
-    'text' => _prettify_fix_spaces(str_replace(' ', '&nbsp;', $text)),
-    'markup' => $multiline ? PRETTIFY_MARKUP_PRECODE : PRETTIFY_MARKUP_CODE,
-    'linenums' => (bool) variable_get('prettify_behaviour_linenums', 0),
-  ));
+  $prettify = array(
+    '#theme' => 'prettify',
+    '#text' => _prettify_fix_spaces(str_replace(' ', '&nbsp;', $text)),
+    '#markup' => $multiline ? PRETTIFY_MARKUP_PRECODE : PRETTIFY_MARKUP_CODE,
+    '#linenums' => (bool) $config->get('behaviour_linenums'),
+  );
+  $text = drupal_render($prettify);
 
   // Remove newlines to avoid clashing with the linebreak filter
   return str_replace("\n", '', $text);
@@ -314,14 +242,14 @@ function prettify_library_get_path($base_path = FALSE) {
     $path .= libraries_get_path(PRETTIFY_LIBRARY_NAME);
   }
   else {
-    $path .= 'sites/all/libraries/' . PRETTIFY_LIBRARY_NAME;
+    $path .= 'libraries/' . PRETTIFY_LIBRARY_NAME;
   }
 
   if (!is_dir($path)) {
     // Find alternatives directories
     $matches = array('google-code-prettify');
     foreach ($matches as $match) {
-      $directory = "sites/all/libraries/$match";
+      $directory = "libraries/$match";
       if (is_dir($directory)) {
         $path = ($base_path ? base_path() : '') . $directory;
         break;
@@ -339,7 +267,7 @@ function prettify_library_get_path($base_path = FALSE) {
 /**
  * Add prettify javascript, settings, stylesheets and loader to the page.
  */
-function prettify_add_library() {
+function prettify_add_library(&$page) {
   static $processed;
   // Make sure resources are not included more than once.
   if (isset($processed)) {
@@ -353,16 +281,20 @@ function prettify_add_library() {
     return;
   }
 
-  $js_scope = variable_get('prettify_add_js_scope', 'header');
-  $js_defer = variable_get('prettify_add_js_defer', FALSE);
-  $js_preprocess = variable_get('prettify_add_js_preprocess', TRUE);
+  // Retrieve configuration object.
+  $config = \Drupal::config('prettify.settings');
 
-  $js_settings_markup = variable_get('prettify_auto_markup', _prettify_default_auto_markup());
-  $js_settings_linenums = variable_get('prettify_behaviour_linenums', 0);
-  $js_settings_match = variable_get('prettify_auto_element_class', '.content');
-  $js_settings_nocode = variable_get('prettify_auto_disabled_class', 'no-code');
-  $js_settings_custom_markup = array_values(array_filter(explode("[,\n\r]", variable_get('prettify_auto_custom_markup', ''))));
+  // Retrieve the settings from the config object.
+  $js_scope = $config->get('add_js_scope');
+  $js_defer = $config->get('add_js_defer');
+  $js_preprocess = $config->get('add_js_preprocess');
+  $js_settings_markup = $config->get('auto_markup');
+  $js_settings_linenums = $config->get('behaviour_linenums');
+  $js_settings_match = $config->get('auto_element_class');
+  $js_settings_nocode = $config->get('auto_disabled_class');
+  $js_settings_custom_markup = array_values(array_filter(explode("[,\n\r]", $config->get('auto_custom_markup'))));
 
+  // Create an array to pass settings to js.
   $js_settings = array('prettify' => array(
     'linenums' => !empty($js_settings_linenums),
     'match' => $js_settings_match,
@@ -373,36 +305,71 @@ function prettify_add_library() {
     $js_settings['prettify']['markup'][$tag] = !empty($enabled);
   }
 
-  // Add required js files and settings
-  drupal_add_js($js_settings, 'setting');
-  drupal_add_js($library_path . '/prettify.js', array('type' => 'file', 'scope' => $js_scope, 'group' => JS_LIBRARY, 'defer' => $js_defer, 'cache' => TRUE, 'preprocess' => $js_preprocess));
+  // Attach js settings array.
+  $page['#attached']['js'][] = array(
+    'data' => $js_settings,
+    'type' => 'setting',
+  );
+
+  // Attach the prettify.js with options array.
+  $page['#attached']['js'][] = array(
+    'data' => $library_path . '/prettify.js',
+    'options' => array(
+      'type' => 'file',
+      'scope' => $js_scope,
+      'group' => JS_LIBRARY,
+      'defer' => $js_defer,
+      'cache' => TRUE,
+      'preprocess' => $js_preprocess,
+    ),
+  );
 
   // Add global enabled languages extensions
-  $extensions = variable_get('prettify_behaviour_extensions', array());
+  $extensions = $config->get('behaviour_extensions');
   foreach ($extensions as $lang => $enabled) {
     if (!empty($enabled)) {
       $ext_path = "$library_path/lang-$lang.js";
       if (file_exists($ext_path)) {
-        drupal_add_js($ext_path, array('type' => 'file', 'scope' => $js_scope, 'group' => JS_LIBRARY, 'defer' => $js_defer, 'cache' => TRUE, 'preprocess' => $js_preprocess));
+        $page['#attached']['js'][] = array(
+          'data' => $ext_path,
+          'options' => array(
+             'type' => 'file',
+             'scope' => $js_scope,
+             'group' => JS_LIBRARY,
+             'defer' => $js_defer,
+             'cache' => TRUE,
+             'preprocess' => $js_preprocess
+          ),
+        );
       }
     }
   }
 
+  // Attache prettify.loader.js
   $module_path = drupal_get_path('module', 'prettify');
-  drupal_add_js($module_path . '/prettify.loader.js', array('type' => 'file', 'scope' => $js_scope, 'group' => JS_DEFAULT, 'defer' => $js_defer, 'cache' => TRUE, 'preprocess' => TRUE));
+  $page['#attached']['js'][$module_path . '/prettify.loader.js'] = array(
+          'options' => array(
+            'type' => 'file',
+            'scope' => $js_scope,
+            'group' => JS_DEFAULT,
+            'defer' => $js_defer,
+            'cache' => TRUE,
+            'preprocess' => true,
+          ),
+      );
 
   // Add stylesheets
-  $css_media = variable_get('prettify_add_css_media', 'all');
-  $css_preprocess = variable_get('prettify_add_css_preprocess', TRUE);
+  $css_media = $config->get('add_css_media');
+  $css_preprocess = $config->get('add_css_preprocess');
 
-  $css = variable_get('prettify_css', 'default');
+  $css = $config->get('css', 'default');
   switch ($css) {
     case 'default':
       $css_path = $library_path .'/prettify.css';
       break;
 
     case 'custom':
-      $css_path = variable_get('prettify_css_path', '');
+      $css_path = $config->get('css_path');
       $css_path = strtr($css_path, array('%b' => base_path(), '%t' => path_to_theme()));
       break;
 
@@ -411,15 +378,15 @@ function prettify_add_library() {
   }
 
   // The CSS file is added after the theme's style
-  $group = CSS_THEME + 1;
+  $group = CSS_AGGREGATE_THEME + 1;
 
   if (file_exists($css_path)) {
     // Local CSS file
-    drupal_add_css($css_path, array('type' => 'file', 'group' => $group, 'media' => $css_media, 'preprocess' => $css_preprocess));
+    $page['#attached']['css'][] = $css_path;
   }
-  elseif (valid_url($css_path, TRUE)) {
+  elseif (UrlHelper::isValid($css_path, TRUE)) {
     // External CSS url
-    drupal_add_css($css_path, array('type' => 'external', 'group' => $group, 'media' => $css_media));
+    $page['#attached']['css'][] = $css_path;
   }
 }
 
@@ -427,15 +394,17 @@ function prettify_add_library() {
  * Return TRUE if current path is enabled for load prettify.
  */
 function prettify_activation_page_match() {
-  $pages = variable_get('prettify_activation_pages', implode("\n", array('admin', 'admin/*')));
+  $config = \Drupal::config('prettify.settings');
+  $pages = $config->get('activation_pages');
   if ($pages) {
-    $activation = variable_get('prettify_activation_mode', 0);
+    $activation = $config->get('activation_mode');
     if ($activation < 2) {
-      $path = drupal_get_path_alias($_GET['q']);
+      $current_path = current_path();
+      $path = Drupal::service('path.alias_manager.cached')->getPathAlias($current_path);
       // Compare with the internal and path alias (if any).
       $page_match = drupal_match_path($path, $pages);
-      if ($path != $_GET['q']) {
-        $page_match = $page_match || drupal_match_path($_GET['q'], $pages);
+      if ($path != $current_path) {
+        $page_match = $page_match || drupal_match_path($current_path, $pages);
       }
       // When $activation has a value of 0, prettify is loaded on all pages
       // except those listed in $pages. When set to 1, it is loaded only on

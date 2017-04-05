@@ -6,12 +6,47 @@
  */
 
 /**
+ * Implements hook_requirements().
+ */
+function prettify_requirements($phase) {
+  $requirements = array();
+  // Ensure translations don't break at install time
+
+  if ($phase == 'runtime') {
+    $library_path = prettify_library_get_path();
+    if (!file_exists("$library_path/prettify.js")) {
+      $args = array(
+        '@url' => url('http://code.google.com/p/google-code-prettify'),
+        '@library-path' => $library_path,
+        '@library-filepath' => "$library_path/prettify.js",
+        '@library-filepath-src' => "$library_path/src/prettify.js",
+      );
+      $description = t('Download the <a href="@url">Google Code Prettify library</a>, extract it and copy its contents into a new folder in the following location:<br /><code>@library-path</code><br /><br />So prettify library can be found at:<br /><code>@library-filepath</code> or<br /><code>@library-filepath-src</code>', $args);
+      $requirements['prettify_library'] = array(
+        'title' => t('Google Code Prettify library'),
+        'value' => t('Prettify JavaScript source files not found'),
+        'description' => $description,
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+    else {
+      $requirements['prettify_library'] = array(
+        'title' => t('Google Code Prettify library'),
+        'value' => t('Found (<code>@library-path</code>)', array('@library-path' => "$library_path/prettify.js")),
+        'severity' => REQUIREMENT_OK,
+      );
+    }
+  }
+
+  return $requirements;
+}
+
+/**
  * Implements hook_install().
  */
 function prettify_install() {
-  $t = get_t();
   $args = array('@url' => url('admin/config/user-interface/prettify'));
-  $message = $t('Code prettify module installed. Automatic syntax highlighting of code snippets has enabled on your Drupal website, you can change the module settings in <a href="@url">Code prettify configuration page</a>.', $args);
+  $message = t('Code prettify module installed. Automatic syntax highlighting of code snippets has enabled on your Drupal website, you can change the module settings in <a href="@url">Code prettify configuration page</a>.', $args);
   drupal_set_message($message);
 }
 
@@ -26,49 +61,25 @@ function prettify_enable() {
 }
 
 /**
- * Implements hook_uninstall().
+ * Updates prettify variables.
  */
-function prettify_uninstall() {
-  // Delete all the prettify variables and then clear the variable cache.
-  db_delete('variable')
-    ->condition('name', 'prettify_%', 'LIKE')
-    ->execute();
-  cache_clear_all('variables', 'cache');
-}
-
-/**
- * Implements hook_requirements().
- */
-function prettify_requirements($phase) {
-  $requirements = array();
-  // Ensure translations don't break at install time
-  $t = get_t();
-
-  if ($phase == 'runtime') {
-    $library_path = prettify_library_get_path();
-    if (!file_exists("$library_path/prettify.js")) {
-      $args = array(
-        '@url' => url('http://code.google.com/p/google-code-prettify'),
-        '@library-path' => $library_path,
-        '@library-filepath' => "$library_path/prettify.js",
-        '@library-filepath-src' => "$library_path/src/prettify.js",
-      );
-      $description = $t('Download the <a href="@url">Google Code Prettify library</a>, extract it and copy its contents into a new folder in the following location:<br /><code>@library-path</code><br /><br />So prettify library can be found at:<br /><code>@library-filepath</code> or<br /><code>@library-filepath-src</code>', $args);
-      $requirements['prettify_library'] = array(
-        'title' => $t('Google Code Prettify library'),
-        'value' => $t('Prettify JavaScript source files not found'),
-        'description' => $description,
-        'severity' => REQUIREMENT_ERROR,
-      );
-    }
-    else {
-      $requirements['prettify_library'] = array(
-        'title' => $t('Google Code Prettify library'),
-        'value' => $t('Found (<code>@library-path</code>)', array('@library-path' => "$library_path/prettify.js")),
-        'severity' => REQUIREMENT_OK,
-      );
-    }
-  }
-
-  return $requirements;
+function prettify_update_8000() {
+  update_variables_to_config('prettify.settings', array(
+    'prettify_activation_mode' => 'activation_mode',
+    'prettify_activation_pages' => 'activation_pages',
+    'prettify_add_css_media' => 'add_css_media',
+    'prettify_add_css_preprocess' => 'add_css_preprocess',
+    'prettify_add_js_defer' => 'add_js_defer',
+    'prettify_add_js_preprocess' => 'add_js_preprocess',
+    'prettify_add_js_scope' => 'add_js_scope',
+    'prettify_auto' => 'auto',
+    'prettify_auto_custom_markup' => 'auto_custom_markup',
+    'prettify_auto_disabled_class' => 'auto_disabled_class',
+    'prettify_auto_element_class' => 'auto_element_class',
+    'prettify_auto_markup' => 'auto_markup',
+    'prettify_behaviour_extensions' => 'behaviour_extensions',
+    'prettify_behaviour_linenums' => 'behaviour_linenums',
+    'prettify_css' => 'css',
+    'prettify_css_path' => 'css_path',
+  ));
 }

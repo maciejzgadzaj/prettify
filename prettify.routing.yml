@@ -1,0 +1,22 @@
+prettify.admin:
+  path: '/admin/config/user-interface/prettify'
+  defaults:
+    _form: '\Drupal\prettify\Form\PrettifyAdminForm'
+  requirements:
+    _permission: 'administer site configuration'
+
+prettify.gallery:
+  path: '/prettify/gallery'
+  defaults:
+    _content: '\Drupal\prettify\Controller\PrettifyController::overview'
+    _title: 'Gallery of themes for Code Prettify'
+  requirements:
+    _permission: 'administer site configuration'
+
+prettify.demo:
+  path: '/prettify/gallery/{css}'
+  defaults:
+    _content: '\Drupal\prettify\Controller\PrettifyController::demo'
+    _title: 'Gallery of themes for Code Prettify'
+  requirements:
+    _permission: 'administer site configuration'
