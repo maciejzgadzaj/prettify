@@ -1,0 +1,32 @@
+{#
+/**
+ * @file
+ * Theme override to display a code block.
+ *
+ * Available variables:
+ * - markup
+ * - tag
+ * - linenums
+ * - language
+ * - html5
+ *
+ * @see template_preprocess_node()
+ */
+#}
+{%
+  set classes = [
+    constant('Drupal\\prettify\\Plugin\\Filter\\PrettifyCode::PRETTIFY_HTML_CLASS'),
+    linenums ? 'linenums:' ~ linenums,
+    (language and not html5) ? 'lang-' ~ language,
+  ]
+%}
+{% if (tag == 'code' or tag == 'pre') %}
+  <{{ tag }}{{ attributes.addClass(classes) }}>{{ markup }}</{{ tag }}>
+{% else %}
+  {%
+    set codeClasses = [
+      html5 ? 'language-' ~ language,
+    ]
+  %}
+  <pre{{ attributes.addClass(classes) }}><code{{ attributes.addClass(codeClasses) }}>{{ markup }}</code></pre>
+{% endif %}

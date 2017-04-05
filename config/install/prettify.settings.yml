@@ -1,10 +1,5 @@
 activation_mode: 0
-activation_pages: 'admin\nadmin/*'
-add_css_media: 'all'
-add_css_preprocess: true
-add_js_defer: false
-add_js_preprocess: true
-add_js_scope: 'header'
+activation_pages: '/admin*'
 auto: true
 auto_custom_markup: ''
 auto_disabled_class: 'no-code'

@@ -1,0 +1,5 @@
+prettify.admin:
+  title: Code prettify
+  description: 'Prettify module configuration.'
+  route_name: prettify.admin
+  parent: system.admin_config_ui

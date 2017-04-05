@@ -1,0 +1,136 @@
+prettify:
+  remote: https://github.com/google/code-prettify
+  version: VERSION
+  license:
+    name: MIT
+    gpl-compatible: false
+  js:
+    /libraries/prettify/src/prettify.js: {}
+    js/prettify.loader.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/jquery
+    - core/jquery.once
+
+admin:
+  js:
+    js/prettify.admin.js: {}
+
+theme-default:
+  css:
+    theme:
+      /libraries/prettify/src/prettify.css: {}
+theme-desert:
+  css:
+    theme:
+      /libraries/prettify/styles/desert.css: {}
+theme-doxy:
+  css:
+    theme:
+      /libraries/prettify/styles/doxy.css: {}
+theme-sons-of-obsidian:
+  css:
+    theme:
+      /libraries/prettify/styles/sons-of-obsidian.css: {}
+theme-sunburst:
+  css:
+    theme:
+      /libraries/prettify/styles/sunburst.css: {}
+
+lang-apollo:
+  js:
+    /libraries/prettify/src/lang-apollo.js: {}
+lang-basic:
+  js:
+    /libraries/prettify/src/lang-basic.js: {}
+lang-clj:
+  js:
+    /libraries/prettify/src/lang-clj.js: {}
+lang-css:
+  js:
+    /libraries/prettify/src/lang-css.js: {}
+lang-dart:
+  js:
+    /libraries/prettify/src/lang-dart.js: {}
+lang-erlang:
+  js:
+    /libraries/prettify/src/lang-erlang.js: {}
+lang-go:
+  js:
+    /libraries/prettify/src/lang-go.js: {}
+lang-hs:
+  js:
+    /libraries/prettify/src/lang-hs.js: {}
+lang-lasso:
+  js:
+    /libraries/prettify/src/lang-lasso.js: {}
+lang-lisp:
+  js:
+    /libraries/prettify/src/lang-lisp.js: {}
+lang-llvm:
+  js:
+    /libraries/prettify/src/lang-llvm.js: {}
+lang-logtalk:
+  js:
+    /libraries/prettify/src/lang-logtalk.js: {}
+lang-lua:
+  js:
+    /libraries/prettify/src/lang-lua.js: {}
+lang-matlab:
+  js:
+    /libraries/prettify/src/lang-matlab.js: {}
+lang-ml:
+  js:
+    /libraries/prettify/src/lang-ml.js: {}
+lang-mumps:
+  js:
+    /libraries/prettify/src/lang-mumps.js: {}
+lang-n:
+  js:
+    /libraries/prettify/src/lang-n.js: {}
+lang-pascal:
+  js:
+    /libraries/prettify/src/lang-pascal.js: {}
+lang-proto:
+  js:
+    /libraries/prettify/src/lang-proto.js: {}
+lang-r:
+  js:
+    /libraries/prettify/src/lang-r.js: {}
+lang-rd:
+  js:
+    /libraries/prettify/src/lang-rd.js: {}
+lang-rust:
+  js:
+    /libraries/prettify/src/lang-rust.js: {}
+lang-scala:
+  js:
+    /libraries/prettify/src/lang-scala.js: {}
+lang-sql:
+  js:
+    /libraries/prettify/src/lang-sql.js: {}
+lang-swift:
+  js:
+    /libraries/prettify/src/lang-swift.js: {}
+lang-tcl:
+  js:
+    /libraries/prettify/src/lang-tcl.js: {}
+lang-tex:
+  js:
+    /libraries/prettify/src/lang-tex.js: {}
+lang-vb:
+  js:
+    /libraries/prettify/src/lang-vb.js: {}
+lang-vhdl:
+  js:
+    /libraries/prettify/src/lang-vhdl.js: {}
+lang-wiki:
+  js:
+    /libraries/prettify/src/lang-wiki.js: {}
+lang-xq:
+  js:
+    /libraries/prettify/src/lang-xq.js: {}
+lang-yaml:
+  js:
+    /libraries/prettify/src/lang-yaml.js: {}
